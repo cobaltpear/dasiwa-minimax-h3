@@ -117,6 +117,9 @@ Tips: Starts from your picture: 5 s at 24 fps with sound, 8 steps. Describe the 
 
 - **Per picture:** send up to 4 LoRAs with a request: `input.remote_loras` = `[{"name": "remote_<id>.safetensors", "url": "<download link>", "sha256": "<file sha256>"}]` plus a `LoraLoader` reading that name in the workflow — the worker downloads each once and keeps it while it runs. [Cobalt Pear](https://cobaltpear.github.io/) does all of this from a Civitai or Hugging Face link. For more than 4, set the environment variable `REMOTE_LORA_MAX` (e.g. `8`) on your endpoint (**Manage → Edit Endpoint → Environment Variables**).
 - **Built in:** put links in the `LORAS` line of your `Dockerfile` — each followed by its strength — and rebuild. They are downloaded once at build time, so a fresh worker doesn't download them again. A request picks which ones it uses with `input.baked_loras` = `[{"link": "<link from LORAS>", "strength": 0.8}]` (`[]` = none); without it every one is used at its `LORAS` strength. One that isn't built in (yet) is left out and named in `output.warning`, and `output.built_in` lists the built-in LoRAs. Put their trigger words in your prompt yourself. To accept only built-in LoRAs, set `REMOTE_LORA_MAX` to `0`.
+<!-- cp:video-loras -->
+- **Video model:** the worker is big, so its build is already long. Built-in LoRAs add to it, and RunPod stops a build after 30 minutes — so for this model, send LoRAs with each request (**By link** in Cobalt Pear).
+<!-- /cp:video-loras -->
 - Pick LoRAs made for this model's base model — the worker warns (`output.warning`) when one doesn't fit.
 
 ### Compatible clients
