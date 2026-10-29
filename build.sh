@@ -4,10 +4,19 @@
 set -eu
 case "${CIVITAI_TOKEN:-}" in ""|PASTE_*) echo "ERROR: set CIVITAI_TOKEN at the top of the Dockerfile" >&2; exit 1;; esac
 
-# file <dest> <url> <sha256>
+# file <dest> <url> <sha256> — starts the download in the background, many connections per file, so the four big files
+# (about 40 GB) arrive within RunPod's 30-minute build limit. `wait_files` waits for all of them and checks each one.
+apt-get update -qq && apt-get install -y -qq aria2 >/dev/null
+CHECKS="" PIDS=""
 file() {
-  wget -q -O "$1" "$2"
-  echo "$3  $1" | sha256sum -c - || { echo "ERROR: $1 changed upstream — wait for an update of the original repo, then rebuild" >&2; exit 1; }
+  aria2c -q -x 16 -s 16 -k 64M --file-allocation=none --max-tries=5 --retry-wait=10 -d "$(dirname "$1")" -o "$(basename "$1")" "$2" &
+  PIDS="$PIDS $!"
+  CHECKS="$CHECKS$3  $1
+"
+}
+wait_files() {
+  for pid in $PIDS; do wait "$pid" || { echo "ERROR: a model download failed" >&2; exit 1; }; done
+  printf "%s" "$CHECKS" | sha256sum -c - || { echo "ERROR: a model file changed upstream — wait for an update of the original repo, then rebuild" >&2; exit 1; }
 }
 
 # Civitai 2877206 / version 3392061 — Hybrid v4 Turbo, int8 (20.5 GB)
@@ -36,3 +45,5 @@ git fetch --depth 1 https://github.com/Comfy-Org/ComfyUI.git tag v0.43.1
 git checkout -f v0.43.1
 uv pip install --python /opt/venv/bin/python -r requirements.txt "transformers>=4.50.3,<5" "huggingface-hub<1.0"
 timeout 300 /opt/venv/bin/python main.py --quick-test-for-ci --cpu
+
+wait_files
