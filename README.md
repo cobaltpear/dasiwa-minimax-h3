@@ -114,6 +114,8 @@ Tips: Starts from your picture: 5 s at 24 fps with sound, 8 steps. Describe the 
 
 - [Cobalt Pear](https://cobaltpear.github.io/) — a one-page web app: add this repo's URL, your endpoint ID and API key, then attach a picture and type the motion. Everything stays in your browser. [Try the demo](https://cobaltpear.github.io/demo/) without RunPod.
 
+RunPod and Civitai change their pages from time to time. If a button or step here looks different from what you see, tell us in [Discussions](https://github.com/cobaltpear/cobaltpear.github.io/discussions) and we'll update this guide.
+
 Questions or ideas: [Discussions](https://github.com/cobaltpear/cobaltpear.github.io/discussions).
 
 ## License
